@@ -28,19 +28,15 @@
 # First, the resource ID that contains the 'home' record you created above. If
 # the URI while editing that A record looks like this:
 #
-#  linode.com/members/dns/resource_aud.cfm?DomainID=98765&ResourceID=123456
+#  https://manager.linode.com/dns/resource/example%2Ecom?id=123456
 #  You want 123456. The API key MUST have write access to this resource ID.
-#
-# As of lately ( 5/2016 ) the DOMAINID is not in the URI
-# https://manager.linode.com/dns/resource/domain.com?id=000000
-#                                          Resource ID  ^   
 #
 RESOURCE = "000000"
 #
 #
 # Find this domain by going to the DNS Manager in Linode and then clicking
-# check next to the domain associates with the above resource ID. 
-# Number should be sitting in parentheses next to domain name.
+# on "Zone file" for the domain the resource above belongs to. The domain ID
+# is in brackets on the first line of the zone file, after the name.
 #
 #
 DOMAIN = "000000"
@@ -102,7 +98,7 @@ except Exception as excp:
 
 def execute(action, parameters):
 	# Execute a query and return a Python dictionary.
-	uri = "{0}&action={1}".format(API.format(KEY), action)
+	uri = "{0}&api_action={1}".format(API.format(KEY), action)
 	if parameters and len(parameters) > 0:
 		uri = "{0}&{1}".format(uri, urlencode(parameters))
 	if DEBUG:
@@ -133,7 +129,7 @@ def ip():
 
 def main():
 	try:
-		res = execute("domainResourceGet", {"DomainID": DOMAIN, "ResourceID": RESOURCE})["DATA"]
+		res = execute("domain.resource.list", {"DomainID": DOMAIN, "ResourceID": RESOURCE})["DATA"]
 		res = res[0] # Turn res from a list to a dict
 		if(len(res)) == 0:
 			raise Exception("No such resource?".format(RESOURCE))
@@ -148,7 +144,7 @@ def main():
 				"Target": public,
 				"TTL_Sec": res["TTL_SEC"]
 			}
-			execute("domainResourceSave", request)
+			execute("domain.resource.update", request)
 			print("OK {0} -> {1}".format(old, public))
 			return 1
 		else:
